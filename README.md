@@ -6,6 +6,9 @@ git clone https://github.com/sedillo/ansible.git
 cd ansible
 docker build -t ansible-base .
 mkdir targets
+```
+Execute the alias command to test or add to ~/.bashrc file to make permanent
+```
 alias ansible-docker="docker run --rm -it -v $(pwd):/ansible/mount -v ~/.ssh/:/root/.ssh ansible-base"
 ```
 Ansible Commands
