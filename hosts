@@ -29,7 +29,9 @@
 ## www[001:006].example.com
 
 [cameras]
-172.16.222.[170:179] ansible_user=intel ansible_ssh_pass=intel
+172.16.222.[30:39] ansible_port=22 ansible_user=ansible ansible_ssh_pass=ansible
+[cameras:vars]
+ansible_python_interpreter=/mnt/sd/python/python3.6.2/bin/python3 
 
 # Ex 3: A collection of database servers in the 'dbservers' group
 
