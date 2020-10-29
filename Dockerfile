@@ -1,6 +1,6 @@
 FROM alpine:3.7
 
-ENV ANSIBLE_VERSION 2.5.0
+ENV ANSIBLE_VERSION 2.8.0
 
 ENV BUILD_PACKAGES \
   bash \
@@ -55,7 +55,6 @@ RUN set -x && \
     \
     pip install ansible-cmdb
 
-COPY hosts /etc/ansible/hosts
 
 ENV ANSIBLE_GATHERING smart
 ENV ANSIBLE_HOST_KEY_CHECKING false
@@ -66,6 +65,5 @@ ENV PYTHONPATH /ansible/lib
 ENV PATH /ansible/bin:$PATH
 ENV ANSIBLE_LIBRARY /ansible/library
 
-WORKDIR /ansible/playbooks
-
-#ENTRYPOINT ["/bin/sh"]
+COPY hosts /etc/ansible/hosts
+WORKDIR /ansible
