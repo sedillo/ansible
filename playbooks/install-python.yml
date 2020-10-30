@@ -1,0 +1,24 @@
+---
+- hosts: cameras
+  gather_facts: false
+
+  tasks:
+  - name: check if python file exists
+    raw: test -e /mnt/sd/python
+    changed_when: false
+    failed_when: false
+    register: check_python
+
+  - name: copy over python zip
+    when: check_python.rc != 0
+    local_action: command scp -P 49155 ./python.zip {{ inventory_hostname }}:/mnt/sd/python.zip
+    register: scp_copied
+
+  - name: unzip python
+    when: scp_copied.rc == 0
+    raw: cd /mnt/sd && unzip ./python.zip
+
+  - name: remove python.zip
+    raw: rm /mnt/sd/python.zip
+
+
