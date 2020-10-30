@@ -15,10 +15,11 @@
     register: scp_copied
 
   - name: unzip python
-    when: scp_copied.rc == 0
+    when: check_python.rc != 0 and scp_copied.rc == 0
     raw: cd /mnt/sd && unzip ./python.zip
 
   - name: remove python.zip
     raw: rm /mnt/sd/python.zip
+    ignore_errors: yes
 
 
