@@ -1,0 +1,25 @@
+---
+- hosts: cameras
+  gather_facts: false
+
+  tasks:
+  - name: get sha
+    local_action: shell sha256sum -b ./FW96685A.bin | head -n1 | cut -d " " -f1
+    register: sha256
+
+  - debug: msg="{{sha256.stdout}}"
+
+  - name: Get path for FW update
+    raw: aicam fwup getpath 79221299
+    register: got_path
+
+  - name: copy over the FW
+    when: got_path.rc == 0
+    local_action: command scp -P 49155 ./FW96685A.bin {{ inventory_hostname }}:/tmp/userfwtmp
+    register: fw_copied
+
+  - name: update fw
+    when: fw_copied.rc == 0
+    raw: aicam fwup start 1 {{sha256.stdout}}
+    with_items: sha256
+
