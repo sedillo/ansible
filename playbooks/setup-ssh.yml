@@ -1,0 +1,35 @@
+### POSSIBLE IMPROVEMENTS ###
+# Create id_rsa in non-default directory
+# Use something else than rsa
+# Use password on SSH key pair
+---
+- hosts: cameras
+  gather_facts: false
+
+  tasks:
+  - name: Test rsa key pair exists
+    local_action: shell stat {{ansible_ssh_private_key_file}}
+    register: ssh_exist
+    #Ignoring errors we create the ssh pair if doesn't exist
+    ignore_errors: yes
+    run_once: true
+
+  - name: Create ssh key if doesn't exist
+    #Skip if rsa key already exists
+    when: ssh_exist.rc != 0
+    local_action: shell ssh-keygen -t rsa -b 4096 -N "" -f {{ansible_ssh_private_key_file}}
+    #Ignoring errors we create the ssh pair if doesn't exist
+    run_once: true
+
+  #We execute this every time because SSH is smart enough
+  #to not copy the key if it exists on the remote
+  - name: Copy keys to camera
+    local_action: shell sshpass -p "{{cam_pass}}" ssh-copy-id -p {{ansible_port}} -i {{ansible_ssh_private_key_file}} {{inventory_hostname}}
+    ignore_errors: yes
+    register: accept_result
+
+  - name: Accept camera into known hosts
+    local_action: shell ssh -oStrictHostKeyChecking=no -q -i {{ansible_ssh_private_key_file}} -p {{ansible_port}} {{inventory_hostname}} exit
+    register: accept_result
+    failed_when: accept_result.rc != 0
+

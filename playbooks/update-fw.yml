@@ -3,23 +3,40 @@
   gather_facts: false
 
   tasks:
-  - name: get sha
+  - name: get shprofile
     local_action: shell sha256sum -b ./FW96685A.bin | head -n1 | cut -d " " -f1
     register: sha256
+    run_once: true
 
   - debug: msg="{{sha256.stdout}}"
+    run_once: true
+
+  - debug: msg="{{version_string}}"
+    run_once: true
 
   - name: Get path for FW update
-    raw: aicam fwup getpath 79221299
-    register: got_path
+    raw: source /etc/profile; setconsole; dbg ver
+    register: get_ver
+  - debug: msg="{{get_ver.stdout}}"
 
-  - name: copy over the FW
-    when: got_path.rc == 0
-    local_action: command scp -P 49155 ./FW96685A.bin {{ inventory_hostname }}:/tmp/userfwtmp
-    register: fw_copied
+  - name: Parse output
+    local_action: shell echo "{{get_ver.stdout}}" | grep Version | awk '{print $NF}'
+    register: cam_ver
+  - debug: msg="{{cam_ver.stdout}}"
 
-  - name: update fw
-    when: fw_copied.rc == 0
-    raw: aicam fwup start 1 {{sha256.stdout}}
-    with_items: sha256
+  - block:
+    - name: Get path for FW update
+      raw: aicam fwup getpath 79221299
+      register: got_path
+
+    - name: copy over the FW
+      when: got_path.rc == 0
+      local_action: command scp -P {{ansible_port}} -i {{ansible_ssh_private_key_file}} ./FW96685A.bin {{ inventory_hostname }}:/tmp/userfwtmp
+      register: fw_copied
+  
+    - name: update fw
+      when: fw_copied.rc == 0
+      raw: aicam fwup start 1 {{sha256.stdout}}
+      with_items: sha256
+    when: cam_ver.stdout != version_string
 

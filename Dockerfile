@@ -55,6 +55,5 @@ RUN set -x && \
     \
     pip install ansible-cmdb
 
-COPY hosts /etc/ansible/hosts
-WORKDIR /ansible
+WORKDIR /root/ansible
  
